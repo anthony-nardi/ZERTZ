@@ -1,0 +1,293 @@
+<!doctype html>
+<html style="margin:0;padding:0;background:#E0E0E0;">
+
+<head>
+  <title>ZERTZ</title>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+
+  <style>
+    * {
+      font-family: roboto
+    }
+
+    .hideOverflow {
+      overflow-y: hidden;
+      overflow-x: hidden
+    }
+
+    .mainContainer {
+      padding: 32px
+    }
+
+    .titleContainer {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+    }
+
+    .buttonContainer {
+      display: 'flex';
+      width: 200px
+    }
+
+    .button {
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      background: #fff
+    }
+
+    .hidden {
+      display: none
+    }
+
+    #gameStateDiv {
+      position: absolute;
+      top: 32px;
+      left: 32px;
+      user-select: none;
+    }
+
+    .flex {
+      display: flex;
+      width: 140px;
+      justify-content: space-between
+    }
+
+    .wrapper {
+      position: absolute;
+      top: calc(50vh - 120px);
+      bottom: 0;
+      left: calc(50vw - 100px);
+      right: 0;
+      width: 100px;
+      height: 50px;
+      z-index: 999;
+    }
+
+    .ajaxSpinner {
+      position: relative;
+      float: left;
+      height: 200px;
+      width: 200px;
+    }
+
+    .ajaxSpinner:after {
+      position: absolute;
+      content: "";
+      left: 0;
+      top: 0;
+      height: 200px;
+      width: 200px;
+      line-height: 200px;
+      color: #546E7A;
+      font-style: italic;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .ajaxSpinner .dot {
+      background: #CFD8DC;
+      position: absolute;
+      left: 0;
+      border: 1px solid #263238;
+      animation: fade 2s linear infinite;
+    }
+
+    .circles .dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+
+
+    .ajaxSpinner .dotWrapper {
+      position: absolute;
+      width: 100px;
+      height: 20px;
+      right: 50%;
+      margin-right: -50px;
+      top: 50%;
+    }
+
+    .dotWrapper:nth-child(2) {
+      transform: rotate(45deg);
+    }
+
+    .dotWrapper:nth-child(2) .dot {
+      animation-delay: -1.75s;
+    }
+
+    .dotWrapper:nth-child(3) {
+      transform: rotate(90deg);
+    }
+
+    .dotWrapper:nth-child(3) .dot {
+      animation-delay: -1.5s;
+    }
+
+    .dotWrapper:nth-child(4) {
+      transform: rotate(135deg);
+    }
+
+    .dotWrapper:nth-child(4) .dot {
+      animation-delay: -1.25s;
+    }
+
+    .dotWrapper:nth-child(5) {
+      transform: rotate(180deg);
+    }
+
+    .dotWrapper:nth-child(5) .dot {
+      animation-delay: -1s;
+    }
+
+    .dotWrapper:nth-child(6) {
+      transform: rotate(225deg);
+    }
+
+    .dotWrapper:nth-child(6) .dot {
+      animation-delay: -0.75s;
+    }
+
+    .dotWrapper:nth-child(7) {
+      transform: rotate(270deg);
+    }
+
+    .dotWrapper:nth-child(7) .dot {
+      animation-delay: -0.5s;
+    }
+
+    .dotWrapper:nth-child(8) {
+      transform: rotate(315deg);
+    }
+
+    .dotWrapper:nth-child(8) .dot {
+      animation-delay: -0.25s;
+    }
+
+    @keyframes fade {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      60% {
+        opacity: 0.1;
+      }
+      95% {
+        transform: scale(0.1);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body style="margin:0;padding:0">
+  <canvas id="gameStateBoardDiv" class="hidden"></canvas>
+  <script src="main.js"></script>
+
+  <div id="gameStateDiv" class="hidden">
+    <div class="flex">
+
+      <b>Turn: </b>
+      <div id="turnDiv">PLAYER</div>
+    </div>
+    <div class="flex">
+      <b>Phase: </b>
+      <div id="phaseDiv">CAPTURE</div>
+    </div>
+
+  </div>
+  <div class="wrapper hidden" id="loadingSpinner">
+    <div class="ajaxSpinner circles">
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+      <div class="dotWrapper">
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+  <div class="mainContainer" id="gameMenuDiv">
+    <div class="titleContainer">
+      <h1>ZERTZ</h1>
+      <h5 style="margin-left: 8px">Designed by Kris Burm</h5>
+    </div>
+    <div class="buttonContainer">
+      <div class="button" id="newGameDiv">New Game</div>
+      <div class="button" id="showRulesDiv">Rules</div>
+    </div>
+  </div>
+  <div class="mainContainer hidden" id="chooseSetup">
+    <h2>Choose Setup</h2>
+    <div class="buttonContainer">
+      <div class="button" id="randomSetup">Random</div>
+      <div class="button" id="symmetricalSetup">Symmetrical</div>
+    </div>
+  </div>
+  <div id="rulesDiv" class="hidden mainContainer">
+    <div class="buttonContainer">
+      <div class="button" id="backToGameMenuDiv">Back</div>
+    </div>
+    <div class="titleContainer ">
+
+      <h1>Rules</h1>
+
+    </div>
+    <div>
+      <h4>VICTORY CONDITIONS</h4>
+      <p>
+        The game is won if:
+      </p>
+      <p>
+        <p>The opponent no longer has one of the 3 types of pieces.</p>
+        <i>or</i>
+        <p>The opponent can't capture during the first phase of their turn.</p>
+      </p>
+
+      <h4>GAMEPLAY</h4>
+      <p>With the exception of the very first move of the game, each turn will consist of two phases.</p>
+      <p>Phase 1: Capture</p>
+      <p>The first move must be a capture. Pieces move along the lines that make up the board. The capturing piece must be stacked
+        equal to or higher than the piece it captures.</p>
+      <p>Phase 2: Stack or Capture</p>
+      <p>During phase two, the current player has the option of either capturing or stacking. When stacking, the moved piece
+        will replace the piece it's stacked on, effectively removing it from the game. The height of the stacks are added
+        together.
+      </p>
+      <p>Note: Be careful stacking. You don't want to replace any pieces that would lose you the game!</p>
+
+      <h4>NOTES</h4>
+      <p>The first move of the game is a capture phase. After the move is made, the next players turn begins in phase 1.</p>
+      <p>Pieces eligible for capture or stacking must be connected by a straight line to the moving piece.</p>
+
+    </div>
+  </div>
+</body>
+
+</html>
