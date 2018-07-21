@@ -18,7 +18,9 @@ import {
   setNewgameBoardState,
   availableBlackMarbles,
   availableGrayMarbles,
-  availableWhiteMarbles
+  availableWhiteMarbles,
+  hoveringCoordinate,
+  availableRings
 } from "./gameState";
 import { List } from "immutable";
 import {
@@ -40,7 +42,7 @@ export function drawCoordinates() {
   if (!DEBUG) {
     return;
   }
-  PLAYABLE_VERTICES.map(drawCoordinate);
+  availableRings.map(drawCoordinate);
 }
 
 export function drawCoordinate(coordinate) {
@@ -100,6 +102,9 @@ export function drawGamePiece(coord, x, y) {
     gameBoardState.get(coord) || getMarbleByBoardCoordinate(coord);
   const context = getContext();
 
+  context.strokeStyle = "#000";
+  context.lineWidth = 2;
+
   if (gamePiece === "BLACK") {
     context.fillStyle = "#000";
     context.beginPath();
@@ -115,7 +120,6 @@ export function drawGamePiece(coord, x, y) {
   }
   if (gamePiece === "WHITE") {
     context.fillStyle = "#fff";
-    context.strokeStyle = "#000";
     context.beginPath();
     context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
     context.fill();
@@ -243,10 +247,31 @@ export function renderMovingPiece(
   });
 }
 
+export function drawHoveringCoordinate() {
+  const [x, y] = getPixelCoordinatesFromBoardCoordinates(
+    hoveringCoordinate
+  ).split(",");
+
+  const context = getContext();
+
+  if (!availableRings.includes(hoveringCoordinate)) {
+    return;
+  }
+
+  context.beginPath();
+  context.arc(x, y, TRIANGLE_HEIGHT / 2, 0, Math.PI * 2);
+  context.lineWidth = 8;
+  context.strokeStyle = "#fe33e3";
+  context.stroke();
+}
+
 export function drawMarblePool() {
   const context = getContext();
   const offsetY = 0;
   const offsetX = 0;
+
+  context.strokeStyle = "#000";
+  context.lineWidth = 2;
 
   if (availableBlackMarbles) {
     const [x, y] = getPixelCoordinatesFromBoardCoordinates(`${1},${7}`).split(
@@ -272,7 +297,6 @@ export function drawMarblePool() {
       ","
     );
     context.fillStyle = "#fff";
-    context.strokeStyle = "#000";
     context.beginPath();
     context.arc(Number(x) + offsetX, Number(y) + offsetY, 16, 0, Math.PI * 2);
     context.fill();

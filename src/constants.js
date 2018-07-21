@@ -41,6 +41,8 @@ export const NUMBER_OF_TZAARS = 6;
 export const NUMBER_OF_WHITE_MARBLES = 6;
 export const NUMBER_OF_GRAY_MARBLES = 8;
 export const NUMBER_OF_BLACK_MARBLES = 10;
+export const PLACE_MARBLE_OR_JUMP = "PLACE_MARBLE_OR_JUMP";
+export const REMOVE_RING = "REMOVE_RING";
 
 export const PLAYABLE_VERTICES = [
   "4,0",

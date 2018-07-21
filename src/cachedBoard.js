@@ -8,6 +8,8 @@ import {
   PIXEL_RATIO
 } from "./constants";
 
+import { availableRings } from "./gameState";
+
 const COORDS_TO_NOT_RENDER = [
   "0,0",
   "0,1",
@@ -119,7 +121,7 @@ export function drawInitialGrid() {
 function renderTriangleFromVertex(coordinate) {
   const context = getContext();
 
-  if (COORDS_TO_NOT_RENDER.includes(coordinate)) {
+  if (!availableRings.includes(coordinate)) {
     return;
   }
   const [x, y] = coordinate.split(",");
