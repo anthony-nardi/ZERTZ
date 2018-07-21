@@ -105,3 +105,55 @@ export function goSouthEast(coordinate) {
 export function isPlayableSpace(coordinate) {
   return PLAYABLE_VERTICES.includes(coordinate);
 }
+
+export function canRemoveRing(coordinate, availableRings, gameBoardState) {
+  if (!availableRings.includes(coordinate)) {
+    return false;
+  }
+  if (gameBoardState.get(coordinate)) {
+    return false;
+  }
+
+  // Adjacent movement checks
+
+  if (
+    !availableRings.includes(goNorthEast(coordinate)) &&
+    !availableRings.includes(goEast(coordinate))
+  ) {
+    return true;
+  }
+
+  if (
+    !availableRings.includes(goEast(coordinate)) &&
+    !availableRings.includes(goSouthEast(coordinate))
+  ) {
+    return true;
+  }
+
+  if (
+    !availableRings.includes(goSouthEast(coordinate)) &&
+    !availableRings.includes(goSouthWest(coordinate))
+  ) {
+    return true;
+  }
+  if (
+    !availableRings.includes(goSouthWest(coordinate)) &&
+    !availableRings.includes(goWest(coordinate))
+  ) {
+    return true;
+  }
+  if (
+    !availableRings.includes(goWest(coordinate)) &&
+    !availableRings.includes(goNorthWest(coordinate))
+  ) {
+    return true;
+  }
+  if (
+    !availableRings.includes(goNorthWest(coordinate)) &&
+    !availableRings.includes(goNorthEast(coordinate))
+  ) {
+    return true;
+  }
+
+  return false;
+}

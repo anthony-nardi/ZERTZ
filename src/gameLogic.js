@@ -7,7 +7,10 @@ import {
   drawMarblePool,
   drawHoveringCoordinate
 } from "./renderHelpers";
-import { getBoardCoordinatesFromPixelCoordinates } from "./gameBoardHelpers";
+import {
+  getBoardCoordinatesFromPixelCoordinates,
+  canRemoveRing
+} from "./gameBoardHelpers";
 import {
   movingPiece,
   gameBoardState,
@@ -36,12 +39,13 @@ function handleClickPiece(event) {
   const [x, y] = getPixelCoordinatesFromUserInteraction(event);
   const boardCoordinate = getBoardCoordinatesFromPixelCoordinates(x, y);
 
-  if (availableRings.includes(boardCoordinate)) {
+  if (canRemoveRing(boardCoordinate, availableRings, gameBoardState)) {
     removeRing(boardCoordinate);
     drawInitialGrid();
     drawGameBoardState();
     drawCoordinates();
     drawMarblePool();
+    return;
   }
 
   if (currentTurn === PLAYER_TWO) {
@@ -100,6 +104,13 @@ function handleDropPiece(event) {
 
   const [x, y] = getPixelCoordinatesFromUserInteraction(event);
   const toCoordinates = getBoardCoordinatesFromPixelCoordinates(x, y);
+
+  if (!availableRings.includes(toCoordinates)) {
+    setMovingPiece(null);
+    drawGameBoardState();
+    drawMarblePool();
+    return;
+  }
 
   setNewgameBoardState(
     gameBoardState.set(toCoordinates, getMarbleByBoardCoordinate(movingPiece))
