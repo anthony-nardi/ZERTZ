@@ -10,7 +10,11 @@ import {
   TZARRA,
   PLAYER_ONE,
   PLAYER_TWO,
-  PIXEL_RATIO
+  PIXEL_RATIO,
+  GamePieceRecord,
+  BLACK,
+  WHITE,
+  GRAY
 } from "./constants";
 import { drawCachedBoard } from "./cachedBoard";
 import {
@@ -85,15 +89,16 @@ export function drawStaticGamePiece(gamePiece, coordinate) {
 
   drawGamePiece(coordinate, xPos, yPos);
 }
+
 function getMarbleByBoardCoordinate(boardCoordinate) {
   if (boardCoordinate === "1,7") {
-    return "BLACK";
+    return new GamePieceRecord({ color: BLACK });
   }
   if (boardCoordinate === "2,7") {
-    return "GRAY";
+    return new GamePieceRecord({ color: GRAY });
   }
   if (boardCoordinate === "3,7") {
-    return "WHITE";
+    return new GamePieceRecord({ color: WHITE });
   }
 }
 
@@ -105,20 +110,20 @@ export function drawGamePiece(coord, x, y) {
   context.strokeStyle = "#000";
   context.lineWidth = 2;
 
-  if (gamePiece === "BLACK") {
+  if (gamePiece.color === "BLACK") {
     context.fillStyle = "#000";
     context.beginPath();
     context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
     context.fill();
   }
-  if (gamePiece === "GRAY") {
+  if (gamePiece.color === "GRAY") {
     context.fillStyle = "#ccc";
     context.beginPath();
     context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
     context.fill();
     context.stroke();
   }
-  if (gamePiece === "WHITE") {
+  if (gamePiece.color === "WHITE") {
     context.fillStyle = "#fff";
     context.beginPath();
     context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);

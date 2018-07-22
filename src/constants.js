@@ -115,11 +115,12 @@ export const EDGE_COORDINATES = [
 export const TZAAR = "TZAAR";
 export const TOTT = "TOTT";
 export const TZARRA = "TZARRA";
+export const WHITE = "WHITE";
+export const GRAY = "GRAY";
+export const BLACK = "BLACK";
 
 export const GamePieceRecord = Record({
-  ownedBy: "",
-  type: "",
-  stackSize: 1,
+  color: WHITE,
   isDragging: false
 });
 
