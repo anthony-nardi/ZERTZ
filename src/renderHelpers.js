@@ -83,7 +83,7 @@ export function drawStaticGamePiece(gamePiece, coordinate) {
     coordinate
   ).split(",");
 
-  if (gamePiece.isDragging || !gamePiece) {
+  if (!gamePiece || gamePiece.isDragging) {
     return;
   }
 
@@ -100,6 +100,38 @@ function getMarbleByBoardCoordinate(boardCoordinate) {
   if (boardCoordinate === "3,7") {
     return new GamePieceRecord({ color: WHITE });
   }
+}
+
+export function drawHoveringGamePiece(coord, x, y) {
+  const gamePiece =
+    gameBoardState.get(coord) || getMarbleByBoardCoordinate(coord);
+  const context = getContext();
+
+  context.shadowBlur = 100;
+  context.strokeStyle = "#000";
+  context.lineWidth = 2;
+  context.shadowColor = "black";
+  if (gamePiece.color === "BLACK") {
+    context.fillStyle = "#000";
+    context.beginPath();
+    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
+    context.fill();
+  }
+  if (gamePiece.color === "GRAY") {
+    context.fillStyle = "#ccc";
+    context.beginPath();
+    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+  }
+  if (gamePiece.color === "WHITE") {
+    context.fillStyle = "#fff";
+    context.beginPath();
+    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+  }
+  context.shadowBlur = 0;
 }
 
 export function drawGamePiece(coord, x, y) {

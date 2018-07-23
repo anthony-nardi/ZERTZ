@@ -106,6 +106,118 @@ export function isPlayableSpace(coordinate) {
   return PLAYABLE_VERTICES.includes(coordinate);
 }
 
+export function getJumpedMarble(fromCoordinate, toCoordinate) {
+  if (goNorthEast(goNorthEast(fromCoordinate)) === toCoordinate) {
+    return goNorthEast(fromCoordinate);
+  }
+  if (goEast(goEast(fromCoordinate)) === toCoordinate) {
+    return goEast(fromCoordinate);
+  }
+  if (goSouthEast(goSouthEast(fromCoordinate)) === toCoordinate) {
+    return goSouthEast(fromCoordinate);
+  }
+  if (goSouthWest(goSouthWest(fromCoordinate)) === toCoordinate) {
+    return goSouthWest(fromCoordinate);
+  }
+  if (goWest(goWest(fromCoordinate)) === toCoordinate) {
+    return goWest(fromCoordinate);
+  }
+  if (goNorthWest(goNorthWest(fromCoordinate)) === toCoordinate) {
+    return goNorthWest(fromCoordinate);
+  }
+  alert("hmm");
+}
+
+export function getValidJumps(fromCoordinate, availableRings, gameBoardState) {
+  const availableJumps = [];
+
+  if (
+    gameBoardState.get(goNorthEast(fromCoordinate)) &&
+    availableRings.includes(goNorthEast(goNorthEast(fromCoordinate)))
+  ) {
+    availableJumps.push(goNorthEast(goNorthEast(fromCoordinate)));
+  }
+  if (
+    gameBoardState.get(goEast(fromCoordinate)) &&
+    availableRings.includes(goEast(goEast(fromCoordinate)))
+  ) {
+    availableJumps.push(goEast(goEast(fromCoordinate)));
+  }
+  if (
+    gameBoardState.get(goSouthEast(fromCoordinate)) &&
+    availableRings.includes(goSouthEast(goSouthEast(fromCoordinate)))
+  ) {
+    availableJumps.push(goSouthEast(goSouthEast(fromCoordinate)));
+  }
+  if (
+    gameBoardState.get(goSouthWest(fromCoordinate)) &&
+    availableRings.includes(goSouthWest(goSouthWest(fromCoordinate)))
+  ) {
+    availableJumps.push(goSouthWest(goSouthWest(fromCoordinate)));
+  }
+  if (
+    gameBoardState.get(goWest(fromCoordinate)) &&
+    availableRings.includes(goWest(goWest(fromCoordinate)))
+  ) {
+    availableJumps.push(goWest(goWest(fromCoordinate)));
+  }
+  if (
+    gameBoardState.get(goNorthWest(fromCoordinate)) &&
+    availableRings.includes(goNorthWest(goNorthWest(fromCoordinate)))
+  ) {
+    availableJumps.push(goNorthWest(goNorthWest(fromCoordinate)));
+  }
+  return availableJumps;
+}
+
+export function isMarbleAbleToCapture(
+  coordinate,
+  availableRings,
+  gameBoardState
+) {
+  if (!gameBoardState.get(coordinate)) {
+    return false;
+  }
+
+  if (
+    gameBoardState.get(goNorthEast(coordinate)) &&
+    availableRings.includes(goNorthEast(goNorthEast(coordinate)))
+  ) {
+    return true;
+  }
+  if (
+    gameBoardState.get(goEast(coordinate)) &&
+    availableRings.includes(goEast(goEast(coordinate)))
+  ) {
+    return true;
+  }
+  if (
+    gameBoardState.get(goSouthEast(coordinate)) &&
+    availableRings.includes(goSouthEast(goSouthEast(coordinate)))
+  ) {
+    return true;
+  }
+  if (
+    gameBoardState.get(goSouthWest(coordinate)) &&
+    availableRings.includes(goSouthWest(goSouthWest(coordinate)))
+  ) {
+    return true;
+  }
+  if (
+    gameBoardState.get(goWest(coordinate)) &&
+    availableRings.includes(goWest(goWest(coordinate)))
+  ) {
+    return true;
+  }
+  if (
+    gameBoardState.get(goNorthWest(coordinate)) &&
+    availableRings.includes(goNorthWest(goNorthWest(coordinate)))
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function canRemoveRing(coordinate, availableRings, gameBoardState) {
   if (!availableRings.includes(coordinate)) {
     return false;

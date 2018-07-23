@@ -14,11 +14,15 @@ import {
   drawGameBoardState,
   drawGamePiece,
   drawMarblePool,
-  drawHoveringCoordinate
+  drawHoveringCoordinate,
+  drawHoveringGamePiece
 } from "./renderHelpers";
 import {
   getBoardCoordinatesFromPixelCoordinates,
-  canRemoveRing
+  canRemoveRing,
+  isMarbleAbleToCapture,
+  getValidJumps,
+  getJumpedMarble
 } from "./gameBoardHelpers";
 import {
   movingPiece,
@@ -47,18 +51,41 @@ function clickedMarbleInPool(boardCoordinate) {
 }
 
 function getAllMarblesOnBoard() {
-  gameBoardState.filter(marble => marble);
+  return gameBoardState.filter(marble => marble);
 }
 
-function canPerformCapture() {
+function mustJumpMarble() {
   const marbles = getAllMarblesOnBoard();
-  debugger;
+  let canCapture = false;
+  if (!marbles) {
+    return false;
+  }
+
+  marbles.keySeq().forEach(coordinate => {
+    if (isMarbleAbleToCapture(coordinate, availableRings, gameBoardState)) {
+      canCapture = true;
+    }
+  });
+  return canCapture;
+}
+
+function isPieceAbleToJump(coordinate) {
+  return isMarbleAbleToCapture(coordinate, availableRings, gameBoardState);
 }
 
 function handleClickPiece(event) {
   const [x, y] = getPixelCoordinatesFromUserInteraction(event);
   const boardCoordinate = getBoardCoordinatesFromPixelCoordinates(x, y);
 
+  // Clicks invalid location
+  if (
+    !availableRings.includes(boardCoordinate) &&
+    !clickedMarbleInPool(boardCoordinate)
+  ) {
+    return;
+  }
+
+  // We must remove a ring.
   if (currentPhase === REMOVE_RING) {
     if (canRemoveRing(boardCoordinate, availableRings, gameBoardState)) {
       removeRing(boardCoordinate);
@@ -72,43 +99,41 @@ function handleClickPiece(event) {
     return;
   }
 
-  if (canPerformCapture()) {
-    debugger;
+  // We must capture
+  if (mustJumpMarble()) {
+    if (!isPieceAbleToJump(boardCoordinate)) {
+      return;
+    }
+    setNewgameBoardState(
+      gameBoardState.setIn([boardCoordinate, "isDragging"], true)
+    );
+
+    setMovingPiece(boardCoordinate);
+    return;
   }
 
   // if (currentTurn === PLAYER_TWO) {
   //   return;
   // }
 
+  // We must place new marble
   if (clickedMarbleInPool(boardCoordinate)) {
     setMovingPiece(boardCoordinate);
     setMovingMarbleFromPool(true);
     return;
   }
-
-  if (!gameBoardState.get(boardCoordinate)) {
-    return;
-  }
-
-  setNewgameBoardState(
-    gameBoardState.setIn([boardCoordinate, "isDragging"], true)
-  );
-
-  setMovingMarbleFromPool(false);
-  setMovingPiece(boardCoordinate);
 }
 
 function handleMovePiece(event) {
   const [x, y] = getPixelCoordinatesFromUserInteraction(event);
   const boardCoordinate = getBoardCoordinatesFromPixelCoordinates(x, y);
-  setHoveringCoordinate(boardCoordinate);
 
   if (!movingPiece) {
     return;
   }
-
+  setHoveringCoordinate(boardCoordinate);
   drawGameBoardState();
-  drawGamePiece(movingPiece, x, y);
+  drawHoveringGamePiece(movingPiece, x, y);
   drawMarblePool();
   drawHoveringCoordinate();
 }
@@ -133,44 +158,79 @@ function handleDropPiece(event) {
   }
 
   const [x, y] = getPixelCoordinatesFromUserInteraction(event);
-  const toCoordinates = getBoardCoordinatesFromPixelCoordinates(x, y);
+  const toCoordinate = getBoardCoordinatesFromPixelCoordinates(x, y);
 
-  if (!availableRings.includes(toCoordinates)) {
-    setMovingPiece(null);
-    drawGameBoardState();
-    drawMarblePool();
-    if (isMovingMarbleFromPool) {
-      setMovingMarbleFromPool(false);
-    } else {
+  // Drops piece onto invalid spot
+  if (
+    !availableRings.includes(toCoordinate) ||
+    gameBoardState.get(toCoordinate)
+  ) {
+    if (gameBoardState.get(movingPiece)) {
       setNewgameBoardState(
         gameBoardState.setIn([movingPiece, "isDragging"], false)
       );
     }
+    setMovingMarbleFromPool(false);
+    setMovingPiece(null);
+    drawGameBoardState();
+    drawMarblePool();
     return;
   }
 
+  // We must capture
+  if (mustJumpMarble()) {
+    if (
+      isPieceAbleToJump(movingPiece) &&
+      getValidJumps(movingPiece, availableRings, gameBoardState).includes(
+        toCoordinate
+      )
+    ) {
+      const jumpedCoordinate = getJumpedMarble(movingPiece, toCoordinate);
+      setNewgameBoardState(
+        gameBoardState
+          .set(toCoordinate, gameBoardState.get(movingPiece))
+          .setIn([toCoordinate, "isDragging"], false)
+          .set(jumpedCoordinate, null)
+          .set(movingPiece, null)
+      );
+      setMovingMarbleFromPool(false);
+      setMovingPiece(null);
+      drawGameBoardState();
+      drawMarblePool();
+
+      if (mustJumpMarble()) {
+        return;
+      }
+
+      setPhase(PLACE_MARBLE_OR_JUMP);
+      setNextTurn();
+      return;
+    } else {
+      setNewgameBoardState(
+        gameBoardState.setIn([movingPiece, "isDragging"], false)
+      );
+      setMovingMarbleFromPool(false);
+      setMovingPiece(null);
+      drawGameBoardState();
+      drawMarblePool();
+      return;
+    }
+  }
+
+  // We are moving marble from pool
   if (isMovingMarbleFromPool) {
+    setNewgameBoardState(
+      gameBoardState.set(toCoordinate, getMarbleByBoardCoordinate(movingPiece))
+    );
+    setMovingMarbleFromPool(false);
     setPhase(REMOVE_RING);
-  } else {
-    setPhase(PLACE_MARBLE_OR_JUMP);
-    setNextTurn();
+    setMovingPiece(null);
+    drawGameBoardState();
+    drawMarblePool();
+    return;
   }
 
-  if (isMovingMarbleFromPool) {
-    setNewgameBoardState(
-      gameBoardState.set(toCoordinates, getMarbleByBoardCoordinate(movingPiece))
-    );
-  } else {
-    setNewgameBoardState(
-      gameBoardState
-        .set(toCoordinates, gameBoardState.get(movingPiece))
-        .setIn([toCoordinates, "isDragging"], false)
-    );
-  }
-
-  setMovingPiece(null);
-  drawGameBoardState();
-  drawMarblePool();
+  alert("HOW?");
 }
 
 export function initGame() {
