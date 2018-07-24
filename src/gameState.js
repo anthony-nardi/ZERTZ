@@ -19,6 +19,14 @@ export let availableGrayMarbles = NUMBER_OF_GRAY_MARBLES;
 export let availableBlackMarbles = NUMBER_OF_BLACK_MARBLES;
 export let availableRings = PLAYABLE_VERTICES;
 export let isMovingMarbleFromPool = false;
+export let capturedMarbles = {
+  [PLAYER_ONE]: [],
+  [PLAYER_TWO]: []
+};
+
+export function addToPlayersCapturedMarbles(player, marble) {
+  capturedMarbles[player].push(marble);
+}
 
 export function setMovingMarbleFromPool(isMovingMarble) {
   isMovingMarbleFromPool = isMovingMarble;

@@ -37,7 +37,8 @@ import {
   setMovingMarbleFromPool,
   isMovingMarbleFromPool,
   setPhase,
-  setNextTurn
+  setNextTurn,
+  addToPlayersCapturedMarbles
 } from "./gameState";
 
 function getPixelCoordinatesFromUserInteraction(event) {
@@ -186,6 +187,12 @@ function handleDropPiece(event) {
       )
     ) {
       const jumpedCoordinate = getJumpedMarble(movingPiece, toCoordinate);
+
+      addToPlayersCapturedMarbles(
+        currentTurn,
+        gameBoardState.get(jumpedCoordinate)
+      );
+
       setNewgameBoardState(
         gameBoardState
           .set(toCoordinate, gameBoardState.get(movingPiece))

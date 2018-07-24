@@ -24,7 +24,8 @@ import {
   availableGrayMarbles,
   availableWhiteMarbles,
   hoveringCoordinate,
-  availableRings
+  availableRings,
+  capturedMarbles
 } from "./gameState";
 import { List } from "immutable";
 import {
@@ -40,6 +41,67 @@ import {
 
 function getContext() {
   return GAME_STATE_BOARD_CANVAS.getContext("2d");
+}
+
+export function drawCapturedPieces() {
+  const context = getContext();
+  const playerOneWhite = capturedMarbles[PLAYER_ONE].reduce((count, type) => {
+    if (type === WHITE) {
+      count = count + 1;
+    }
+    return count;
+  }, 0);
+  const playerOneBlack = capturedMarbles[PLAYER_ONE].reduce((count, type) => {
+    if (type === BLACK) {
+      count = count + 1;
+    }
+    return count;
+  }, 0);
+  const playerOneGray = capturedMarbles[PLAYER_ONE].reduce((count, type) => {
+    if (type === GRAY) {
+      count = count + 1;
+    }
+    return count;
+  }, 0);
+  const playerTwoWhite = capturedMarbles[PLAYER_TWO].reduce((count, type) => {
+    if (type === WHITE) {
+      count = count + 1;
+    }
+    return count;
+  }, 0);
+  const playerTwoBlack = capturedMarbles[PLAYER_TWO].reduce((count, type) => {
+    if (type === BLACK) {
+      count = count + 1;
+    }
+    return count;
+  }, 0);
+  const playerTwoGray = capturedMarbles[PLAYER_TWO].reduce((count, type) => {
+    if (type === GRAY) {
+      count = count + 1;
+    }
+    return count;
+  }, 0);
+
+  const playerOneY = window.innerHeight - 60;
+  const playerTwoY = window.innerHeight - 25;
+  const playerOneX = 32;
+  const playerTwoX = 32;
+
+  context.fillText("Player: ", playerOneX, playerOneY);
+
+  drawGamePieceByColor(BLACK, playerOneX + 50, playerOneY, playerOneBlack);
+
+  drawGamePieceByColor(GRAY, playerOneX + 90, playerOneY, playerOneGray);
+
+  drawGamePieceByColor(WHITE, playerOneX + 130, playerOneY, playerOneWhite);
+
+  context.fillText("AI: ", playerTwoX, playerTwoY);
+
+  drawGamePieceByColor(BLACK, playerTwoX + 50, playerTwoY, playerTwoBlack);
+
+  drawGamePieceByColor(GRAY, playerTwoX + 90, playerTwoY, playerTwoGray);
+
+  drawGamePieceByColor(WHITE, playerTwoX + 130, playerTwoY, playerTwoWhite);
 }
 
 export function drawCoordinates() {
@@ -75,6 +137,7 @@ export function drawGameBoardState() {
   clearCanvas();
   drawCachedBoard();
   drawGamePieces();
+  drawCapturedPieces();
   drawCoordinates();
 }
 
@@ -103,11 +166,7 @@ function getMarbleByBoardCoordinate(boardCoordinate) {
 }
 
 export function drawHoveringGamePiece(coord, x, y) {
-  const gamePiece =
-    gameBoardState.get(coord) || getMarbleByBoardCoordinate(coord);
   const context = getContext();
-
-  context.shadowBlur = 100;
   context.strokeStyle = "#000";
   context.lineWidth = 2;
   context.shadowColor = "black";
@@ -134,6 +193,48 @@ export function drawHoveringGamePiece(coord, x, y) {
   context.shadowBlur = 0;
 }
 
+export function drawGamePieceByColor(color, x, y, count) {
+  const hasCount = typeof count === "number";
+  const context = getContext();
+
+  context.strokeStyle = "#000";
+  context.lineWidth = 2;
+
+  if (color === BLACK) {
+    context.fillStyle = "#000";
+    context.beginPath();
+    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
+    context.fill();
+
+    if (hasCount) {
+      context.fillStyle = "#fff";
+      context.fillText(count, x - 3, y + 3);
+    }
+  }
+  if (color === GRAY) {
+    context.fillStyle = "#ccc";
+    context.beginPath();
+    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    if (hasCount) {
+      context.fillStyle = "#fff";
+      context.fillText(count, x - 3, y + 3);
+    }
+  }
+  if (color === WHITE) {
+    context.fillStyle = "#fff";
+    context.beginPath();
+    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    if (hasCount) {
+      context.fillStyle = "#000";
+      context.fillText(count, x - 3, y + 3);
+    }
+  }
+}
+
 export function drawGamePiece(coord, x, y) {
   const gamePiece =
     gameBoardState.get(coord) || getMarbleByBoardCoordinate(coord);
@@ -142,26 +243,7 @@ export function drawGamePiece(coord, x, y) {
   context.strokeStyle = "#000";
   context.lineWidth = 2;
 
-  if (gamePiece.color === "BLACK") {
-    context.fillStyle = "#000";
-    context.beginPath();
-    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
-    context.fill();
-  }
-  if (gamePiece.color === "GRAY") {
-    context.fillStyle = "#ccc";
-    context.beginPath();
-    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
-  }
-  if (gamePiece.color === "WHITE") {
-    context.fillStyle = "#fff";
-    context.beginPath();
-    context.arc(Number(x), Number(y), 16, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
-  }
+  drawGamePieceByColor(gamePiece.color, x, y);
 }
 
 export function drawGamePieces() {
