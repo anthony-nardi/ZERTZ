@@ -44,12 +44,7 @@
       display: none
     }
 
-    #gameStateDiv {
-      position: absolute;
-      top: 32px;
-      left: 32px;
-      user-select: none;
-    }
+
 
     .flex {
       display: flex;
@@ -193,18 +188,7 @@
   <canvas id="gameStateBoardDiv" class="hidden"></canvas>
   <script src="main.js"></script>
 
-  <div id="gameStateDiv" class="hidden">
-    <div class="flex">
 
-      <b>Turn: </b>
-      <div id="turnDiv">PLAYER</div>
-    </div>
-    <div class="flex">
-      <b>Phase: </b>
-      <div id="phaseDiv">CAPTURE</div>
-    </div>
-
-  </div>
   <div class="wrapper hidden" id="loadingSpinner">
     <div class="ajaxSpinner circles">
       <div class="dotWrapper">

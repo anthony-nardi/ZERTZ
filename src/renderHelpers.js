@@ -3,14 +3,9 @@ import {
   DEBUG,
   TRIANGLE_SIDE_LENGTH,
   TRIANGLE_HEIGHT,
-  PLAYABLE_VERTICES,
   GAME_STATE_BOARD_CANVAS,
-  TOTT,
-  TZAAR,
-  TZARRA,
   PLAYER_ONE,
   PLAYER_TWO,
-  PIXEL_RATIO,
   GamePieceRecord,
   BLACK,
   WHITE,
@@ -18,26 +13,12 @@ import {
 } from "./constants";
 import { drawCachedBoard } from "./cachedBoard";
 import {
-  gameBoardState,
-  setNewgameBoardState,
-  availableBlackMarbles,
-  availableGrayMarbles,
-  availableWhiteMarbles,
+  gameState,
+  updateGameState,
   hoveringCoordinate,
-  availableRings,
-  capturedMarbles
+  currentTurn
 } from "./gameState";
 import { List } from "immutable";
-import {
-  PLAYER_ONE_TOTT,
-  PLAYER_ONE_TZAAR,
-  PLAYER_ONE_TZARRA,
-  PLAYER_TWO_TOTT,
-  PLAYER_TWO_TZAAR,
-  PLAYER_TWO_TZARRA,
-  GAME_PIECE_RADIUS,
-  CANVAS_SIDE_LENGTH
-} from "./gamePieceRenderer";
 
 function getContext() {
   return GAME_STATE_BOARD_CANVAS.getContext("2d");
@@ -45,42 +26,28 @@ function getContext() {
 
 export function drawCapturedPieces() {
   const context = getContext();
-  const playerOneWhite = capturedMarbles[PLAYER_ONE].reduce((count, type) => {
-    if (type === WHITE) {
-      count = count + 1;
-    }
-    return count;
-  }, 0);
-  const playerOneBlack = capturedMarbles[PLAYER_ONE].reduce((count, type) => {
-    if (type === BLACK) {
-      count = count + 1;
-    }
-    return count;
-  }, 0);
-  const playerOneGray = capturedMarbles[PLAYER_ONE].reduce((count, type) => {
-    if (type === GRAY) {
-      count = count + 1;
-    }
-    return count;
-  }, 0);
-  const playerTwoWhite = capturedMarbles[PLAYER_TWO].reduce((count, type) => {
-    if (type === WHITE) {
-      count = count + 1;
-    }
-    return count;
-  }, 0);
-  const playerTwoBlack = capturedMarbles[PLAYER_TWO].reduce((count, type) => {
-    if (type === BLACK) {
-      count = count + 1;
-    }
-    return count;
-  }, 0);
-  const playerTwoGray = capturedMarbles[PLAYER_TWO].reduce((count, type) => {
-    if (type === GRAY) {
-      count = count + 1;
-    }
-    return count;
-  }, 0);
+  const playerOneWhite = gameState.getIn([
+    "capturedMarbles",
+    PLAYER_ONE,
+    WHITE
+  ]);
+  const playerOneGray = gameState.getIn(["capturedMarbles", PLAYER_ONE, GRAY]);
+  const playerOneBlack = gameState.getIn([
+    "capturedMarbles",
+    PLAYER_ONE,
+    BLACK
+  ]);
+  const playerTwoWhite = gameState.getIn([
+    "capturedMarbles",
+    PLAYER_TWO,
+    WHITE
+  ]);
+  const playerTwoGray = gameState.getIn(["capturedMarbles", PLAYER_TWO, GRAY]);
+  const playerTwoBlack = gameState.getIn([
+    "capturedMarbles",
+    PLAYER_TWO,
+    BLACK
+  ]);
 
   const playerOneY = window.innerHeight - 60;
   const playerTwoY = window.innerHeight - 25;
@@ -103,12 +70,19 @@ export function drawCapturedPieces() {
 
   drawGamePieceByColor(WHITE, playerTwoX + 130, playerTwoY, playerTwoWhite);
 }
-
+export function drawCurrentTurn() {
+  const context = getContext();
+  if (currentTurn === PLAYER_ONE) {
+    context.fillText("Current Turn: Player", 32, 50);
+  } else {
+    context.fillText("Current Turn: AI", 32, 50);
+  }
+}
 export function drawCoordinates() {
   if (!DEBUG) {
     return;
   }
-  availableRings.map(drawCoordinate);
+  gameState.get("availableRings").map(drawCoordinate);
 }
 
 export function drawCoordinate(coordinate) {
@@ -138,6 +112,7 @@ export function drawGameBoardState() {
   drawCachedBoard();
   drawGamePieces();
   drawCapturedPieces();
+  drawCurrentTurn();
   drawCoordinates();
 }
 
@@ -165,8 +140,10 @@ function getMarbleByBoardCoordinate(boardCoordinate) {
   }
 }
 
-export function drawHoveringGamePiece(coord, x, y) {
+export function drawHoveringGamePiece(coord, x, y, board) {
+  const gamePiece = getMarbleByBoardCoordinate(coord) || board.get(coord);
   const context = getContext();
+  context.shadowBlur = 100;
   context.strokeStyle = "#000";
   context.lineWidth = 2;
   context.shadowColor = "black";
@@ -218,7 +195,7 @@ export function drawGamePieceByColor(color, x, y, count) {
     context.fill();
     context.stroke();
     if (hasCount) {
-      context.fillStyle = "#fff";
+      context.fillStyle = "#000";
       context.fillText(count, x - 3, y + 3);
     }
   }
@@ -237,7 +214,7 @@ export function drawGamePieceByColor(color, x, y, count) {
 
 export function drawGamePiece(coord, x, y) {
   const gamePiece =
-    gameBoardState.get(coord) || getMarbleByBoardCoordinate(coord);
+    gameState.get("board").get(coord) || getMarbleByBoardCoordinate(coord);
   const context = getContext();
 
   context.strokeStyle = "#000";
@@ -247,7 +224,7 @@ export function drawGamePiece(coord, x, y) {
 }
 
 export function drawGamePieces() {
-  gameBoardState.forEach(drawStaticGamePiece);
+  gameState.get("board").forEach(drawStaticGamePiece);
 }
 
 export function clearCanvas() {
@@ -279,7 +256,7 @@ export function renderInitializingBoard(piecesToDraw, callback) {
   renderMovingPieces(piecesToRenderList, 500, Date.now(), () => {
     let index = 0;
     piecesToDraw.forEach((piece, coordinate) => {
-      setNewgameBoardState(gameBoardState.set(coordinate, piece));
+      updateGameState(gameState.get("board").set(coordinate, piece));
       index = index + 1;
     });
     callback();
@@ -373,7 +350,7 @@ export function drawHoveringCoordinate() {
 
   const context = getContext();
 
-  if (!availableRings.includes(hoveringCoordinate)) {
+  if (!gameState.get("availableRings").includes(hoveringCoordinate)) {
     return;
   }
 
@@ -385,6 +362,9 @@ export function drawHoveringCoordinate() {
 }
 
 export function drawMarblePool() {
+  const availableBlackMarbles = gameState.getIn(["availableMarbles", BLACK]);
+  const availableGrayMarbles = gameState.getIn(["availableMarbles", GRAY]);
+  const availableWhiteMarbles = gameState.getIn(["availableMarbles", WHITE]);
   const context = getContext();
   const offsetY = 0;
   const offsetX = 0;
@@ -396,29 +376,33 @@ export function drawMarblePool() {
     const [x, y] = getPixelCoordinatesFromBoardCoordinates(`${1},${7}`).split(
       ","
     );
-    context.fillStyle = "#000";
-    context.beginPath();
-    context.arc(Number(x) + offsetX, Number(y) + offsetY, 16, 0, Math.PI * 2);
-    context.fill();
+    drawGamePieceByColor(
+      BLACK,
+      Number(x) + offsetX,
+      Number(y) + offsetY,
+      availableBlackMarbles
+    );
   }
   if (availableGrayMarbles) {
     const [x, y] = getPixelCoordinatesFromBoardCoordinates(`${2},${7}`).split(
       ","
     );
-    context.fillStyle = "#ccc";
-    context.beginPath();
-    context.arc(Number(x) + offsetX, Number(y) + offsetY, 16, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
+    drawGamePieceByColor(
+      GRAY,
+      Number(x) + offsetX,
+      Number(y) + offsetY,
+      availableGrayMarbles
+    );
   }
   if (availableWhiteMarbles) {
     const [x, y] = getPixelCoordinatesFromBoardCoordinates(`${3},${7}`).split(
       ","
     );
-    context.fillStyle = "#fff";
-    context.beginPath();
-    context.arc(Number(x) + offsetX, Number(y) + offsetY, 16, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
+    drawGamePieceByColor(
+      WHITE,
+      Number(x) + offsetX,
+      Number(y) + offsetY,
+      availableWhiteMarbles
+    );
   }
 }

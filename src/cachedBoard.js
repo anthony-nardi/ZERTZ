@@ -8,7 +8,7 @@ import {
   PIXEL_RATIO
 } from "./constants";
 
-import { availableRings } from "./gameState";
+import { gameState } from "./gameState";
 
 const COORDS_TO_NOT_RENDER = [
   "0,0",
@@ -120,8 +120,7 @@ export function drawInitialGrid() {
 
 function renderTriangleFromVertex(coordinate) {
   const context = getContext();
-
-  if (!availableRings.includes(coordinate)) {
+  if (!gameState.get("availableRings").includes(coordinate)) {
     return;
   }
   const [x, y] = coordinate.split(",");
@@ -140,14 +139,4 @@ function renderTriangleFromVertex(coordinate) {
   context.lineWidth = 8;
   context.strokeStyle = "#666666";
   context.stroke();
-}
-
-function renderSquareBorder() {
-  const context = getContext();
-  context.strokeRect(
-    OFFSET_X,
-    0,
-    8 * TRIANGLE_SIDE_LENGTH,
-    8 * TRIANGLE_HEIGHT
-  );
 }

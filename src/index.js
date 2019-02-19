@@ -4,7 +4,7 @@ function startNewGame() {
   document.documentElement.classList.add("hideOverflow");
   document.getElementById("gameMenuDiv").classList.add("hidden");
   document.getElementById("gameStateBoardDiv").classList.remove("hidden");
-  document.getElementById("gameStateDiv").classList.remove("hidden");
+
   initGame();
 }
 
