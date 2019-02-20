@@ -9,14 +9,16 @@ import {
   GamePieceRecord,
   BLACK,
   WHITE,
-  GRAY
+  GRAY,
+  PLACE_MARBLE_OR_JUMP
 } from "./constants";
 import { drawCachedBoard } from "./cachedBoard";
 import {
   gameState,
   updateGameState,
   hoveringCoordinate,
-  currentTurn
+  currentTurn,
+  currentPhase
 } from "./gameState";
 import { List } from "immutable";
 
@@ -72,8 +74,11 @@ export function drawCapturedPieces() {
 }
 export function drawCurrentTurn() {
   const context = getContext();
+  let phaseDescription =
+    currentPhase === PLACE_MARBLE_OR_JUMP ? "Place or capture" : "Remove ring";
   if (currentTurn === PLAYER_ONE) {
     context.fillText("Current Turn: Player", 32, 50);
+    context.fillText(`Phase: ${phaseDescription}`, 32, 65);
   } else {
     context.fillText("Current Turn: AI", 32, 50);
   }

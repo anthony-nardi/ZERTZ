@@ -20,7 +20,9 @@ import {
   canRemoveRing,
   isMarbleAbleToCapture,
   getValidJumps,
-  getJumpedMarble
+  getJumpedMarble,
+  canRemoveAnyRing,
+  isGroupIsolated
 } from "./gameBoardHelpers";
 import {
   gameState,
@@ -57,14 +59,15 @@ function mustJumpMarble() {
   const marbles = getAllMarblesOnBoard();
 
   let canCapture = false;
+
   if (!marbles) {
     return false;
   }
 
-  marbles.keySeq().forEach(coordinate => {
+  marbles.keySeq().forEach(marbleCoordinate => {
     if (
       isMarbleAbleToCapture(
-        coordinate,
+        marbleCoordinate,
         gameState.get("availableRings"),
         gameState.get("board")
       )
@@ -75,9 +78,9 @@ function mustJumpMarble() {
   return canCapture;
 }
 
-function isPieceAbleToJump(coordinate) {
+function isPieceAbleToJump(marbleCoordinate) {
   return isMarbleAbleToCapture(
-    coordinate,
+    marbleCoordinate,
     gameState.get("availableRings"),
     gameState.get("board")
   );
@@ -105,6 +108,9 @@ function handleClickPiece(event) {
       )
     ) {
       removeRing(boardCoordinate);
+      if (isGroupIsolated(gameState)) {
+        debugger;
+      }
       setNextTurn();
       setPhase(PLACE_MARBLE_OR_JUMP);
       drawInitialGrid();
@@ -234,7 +240,6 @@ function handleDropPiece(event) {
       setNextTurn();
       drawGameBoardState();
       drawMarblePool();
-
       return;
     } else {
       updateGameState(
@@ -262,10 +267,19 @@ function handleDropPiece(event) {
     );
 
     setMovingMarbleFromPool(false);
-    setPhase(REMOVE_RING);
+
     setMovingPiece(null);
     drawGameBoardState();
     drawMarblePool();
+
+    if (
+      canRemoveAnyRing(gameState.get("availableRings"), gameState.get("board"))
+    ) {
+      setPhase(REMOVE_RING);
+    } else {
+      setPhase(PLACE_MARBLE_OR_JUMP);
+      setNextTurn();
+    }
 
     return;
   }

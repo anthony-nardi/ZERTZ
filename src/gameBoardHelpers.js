@@ -3,6 +3,7 @@ import {
   TRIANGLE_HEIGHT,
   PLAYABLE_VERTICES
 } from "./constants";
+import { List } from "immutable";
 
 export function getPixelCoordinatesFromBoardCoordinates(coordinate) {
   const [x, y] = coordinate.split(",");
@@ -170,52 +171,62 @@ export function getValidJumps(fromCoordinate, availableRings, gameBoardState) {
   return availableJumps;
 }
 
-export function isMarbleAbleToCapture(
-  coordinate,
-  availableRings,
-  gameBoardState
-) {
-  if (!gameBoardState.get(coordinate)) {
+export function isMarbleAbleToCapture(coordinate, availableRings, board) {
+  if (!board.get(coordinate)) {
     return false;
   }
 
   if (
-    gameBoardState.get(goNorthEast(coordinate)) &&
+    board.get(goNorthEast(coordinate)) &&
     availableRings.includes(goNorthEast(goNorthEast(coordinate)))
   ) {
     return true;
   }
+
   if (
-    gameBoardState.get(goEast(coordinate)) &&
+    board.get(goEast(coordinate)) &&
     availableRings.includes(goEast(goEast(coordinate)))
   ) {
     return true;
   }
+
   if (
-    gameBoardState.get(goSouthEast(coordinate)) &&
+    board.get(goSouthEast(coordinate)) &&
     availableRings.includes(goSouthEast(goSouthEast(coordinate)))
   ) {
     return true;
   }
+
   if (
-    gameBoardState.get(goSouthWest(coordinate)) &&
+    board.get(goSouthWest(coordinate)) &&
     availableRings.includes(goSouthWest(goSouthWest(coordinate)))
   ) {
     return true;
   }
+
   if (
-    gameBoardState.get(goWest(coordinate)) &&
+    board.get(goWest(coordinate)) &&
     availableRings.includes(goWest(goWest(coordinate)))
   ) {
     return true;
   }
+
   if (
-    gameBoardState.get(goNorthWest(coordinate)) &&
+    board.get(goNorthWest(coordinate)) &&
     availableRings.includes(goNorthWest(goNorthWest(coordinate)))
   ) {
     return true;
   }
+
   return false;
+}
+
+export function canRemoveAnyRing(availableRings, gameBoardState) {
+  return Boolean(
+    availableRings.find(coordinate => {
+      return canRemoveRing(coordinate, availableRings, gameBoardState);
+    })
+  );
 }
 
 export function canRemoveRing(coordinate, availableRings, gameBoardState) {
@@ -268,4 +279,62 @@ export function canRemoveRing(coordinate, availableRings, gameBoardState) {
   }
 
   return false;
+}
+
+export function getAdjacentCoordinates(coordinate) {
+  return List([
+    goNorthWest(coordinate),
+    goNorthEast(coordinate),
+    goEast(coordinate),
+    goSouthEast(coordinate),
+    goSouthWest(coordinate),
+    goWest(coordinate)
+  ]);
+}
+
+function isEmptyRing(gameState, coordinate) {
+  return (
+    gameState.get("availableRings").includes(coordinate) &&
+    !gameState.get("board").get(coordinate)
+  );
+}
+
+function isMarble(gameState, coordinate) {
+  return gameState.get("board").get(coordinate);
+}
+
+// Recursive function needs coordinatesToIgnore to not loop infinitely
+export function isGroupIsolated(gameState, coordinatesToIgnore = List()) {
+  const startingPoints = gameState.get("board").keySeq();
+
+  const isolatedGroup = startingPoints.forEach(coordinate => {
+    const adjacentCoordinates = getAdjacentCoordinates(coordinate);
+    const adjacentEmptyRings = adjacentCoordinates.filter(adjCoord => {
+      return isEmptyRing(gameState, adjCoord);
+    });
+
+    // empty ring adjacent to marble (BAIL)
+    if (adjacentEmptyRings.size) {
+      return;
+    }
+
+    const adjacentMarbles = adjacentCoordinates
+      .filter(adjCoord => {
+        return coordinatesToIgnore.includes(adjCoord);
+      })
+      .filter(adjCoord => {
+        return isMarble(gameState, adjCoord);
+      });
+
+    // marble adjacent, need to check that marbles surrounding rings
+    if (adjacentMarbles.size) {
+      // recursive call
+      isGroupIsolated(gameState, coordinatesToIgnore.push(coordinate));
+    }
+
+    // At this point we know we have an isolate group
+
+    debugger;
+    return true;
+  });
 }
